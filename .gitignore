@@ -1,2 +1,8 @@
 *.exe
 *.pdb
+*.cache
+8-Puzzle/bin/Debug/8-Puzzle.exe
+8-Puzzle/bin/Debug/8-Puzzle.pdb
+8-Puzzle/obj/Debug/8-Puzzle.exe
+8-Puzzle/obj/Debug/8-Puzzle.pdb
+8-Puzzle/obj/Debug/DesignTimeResolveAssemblyReferencesInput.cache
