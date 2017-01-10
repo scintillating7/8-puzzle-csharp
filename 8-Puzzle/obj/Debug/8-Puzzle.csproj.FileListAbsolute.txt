@@ -1,6 +1,5 @@
-c:\users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\8-Puzzle.exe.config
-c:\users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\8-Puzzle.exe
-c:\users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\8-Puzzle.pdb
-c:\users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.csprojResolveAssemblyReference.cache
-c:\users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.exe
-c:\users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.pdb
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\8-Puzzle.exe.config
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\8-Puzzle.exe
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\8-Puzzle.pdb
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.exe
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.pdb
