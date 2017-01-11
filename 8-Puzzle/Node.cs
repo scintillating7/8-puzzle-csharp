@@ -6,20 +6,45 @@ using System.Threading.Tasks;
 
 namespace _8_Puzzle
 {
-    public class Node
+    public class Node : IComparable<Node>
     {
-        public Board b;
-        public List<Node> children;
-        public int depth;
+        public Board board;
         public int cost;
-        public Node(Board b)
+        public int depth;
+        public Node(Board b,
+                    Node parent)
         {
-            this.b = b;
-            this.children = new List<Node>();
+            this.board = b;
             this.cost = 0;
             this.depth = 0;
+            this.Parent = parent;
+        }
+
+        public Node(Board b,
+                    Node parent,
+                    int cost,
+                    int depth)
+        {
+            this.board = b;
+            this.cost = cost;
+            this.depth = depth;
+            this.Parent = parent;
         }
 
         public Node Parent { get; private set; }
+
+        public int CompareTo(Node other)
+        {
+            if (this.cost > other.cost)
+            {
+                return 1;
+            } else if (this.cost < other.cost)
+            {
+                return -1;
+            } else
+            {
+                return 0;
+            }
+        }
     }
 }

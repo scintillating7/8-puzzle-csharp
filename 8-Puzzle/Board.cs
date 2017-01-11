@@ -18,6 +18,8 @@ namespace _8_Puzzle
         private int[,] mTiles;
         private int mId;
         private Heuristic h;
+        private int mTileMoved;
+        private int mDirection;
 
         #endregion
 
@@ -28,6 +30,17 @@ namespace _8_Puzzle
         {
             this.mTiles = tiles;
             this.mId = id;
+        }
+
+        private Board(int[,] tiles,
+                      int id,
+                      int tileMoved,
+                      int direction)
+        {
+            this.mTiles = tiles;
+            this.mId = id;
+            this.mTileMoved = tileMoved;
+            this.mDirection = direction;
         }
 
         private Board() { }
@@ -80,6 +93,18 @@ namespace _8_Puzzle
             set { mId = value; }
         }
 
+        public int Direction
+        {
+            get { return mDirection; }
+            set { mDirection = value; }
+        }
+
+        public int TileMoved
+        {
+            get { return mTileMoved; }
+            set { mTileMoved = value; }
+        }
+
         #endregion
 
         #region Public Methods
@@ -96,7 +121,7 @@ namespace _8_Puzzle
         /// </summary>
         /// <returns></returns>
         /// <remarks>1-4 possible next states</remarks>
-        public List<Board> generateNextStates()
+        public List<Board> GenerateNextStates()
         {
             List<Board> childStates = new List<Board>();
 
@@ -111,24 +136,32 @@ namespace _8_Puzzle
             {
                 Board upChild = swap(indexOfBlankTile, 
                                      new Tuple<int, int>(row - 1, column));
+                upChild.Direction = 1;
+                upChild.TileMoved = this.mTiles[row - 1, column];
                 childStates.Add(upChild);
             }
             if (indexIsValid(row + 1))
             {
                 Board downChild = swap(indexOfBlankTile,
                                     new Tuple<int, int>(row + 1, column));
+                downChild.Direction = 0;
+                downChild.TileMoved = this.mTiles[row + 1, column];
                 childStates.Add(downChild);
             }
             if (indexIsValid(column - 1))
             {
                 Board leftChild = swap(indexOfBlankTile,
                                     new Tuple<int, int>(row, column - 1));
+                leftChild.Direction = 2;
+                leftChild.TileMoved = this.mTiles[row, column - 1];
                 childStates.Add(leftChild);
             }
             if (indexIsValid(column + 1))
             {
                 Board rightChild = swap(indexOfBlankTile,
                                     new Tuple<int, int>(row, column + 1));
+                rightChild.Direction = 3;
+                rightChild.TileMoved = this.mTiles[row, column + 1];
                 childStates.Add(rightChild);
             }
 
@@ -156,7 +189,8 @@ namespace _8_Puzzle
 
         #region Private Helper Methods
 
-        private Board swap(Tuple<int, int> indexOfBlankTile, Tuple<int, int> indexToSwapWith)
+        private Board swap(Tuple<int, int> indexOfBlankTile, 
+                           Tuple<int, int> indexToSwapWith)
         {
             Board child = this.Clone();
             int toSwap = this.mTiles[indexToSwapWith.Item1, indexToSwapWith.Item2];

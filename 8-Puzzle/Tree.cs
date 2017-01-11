@@ -19,7 +19,7 @@ namespace _8_Puzzle
        
         public static Tree CreateNew(Board b)
         {
-            Node n = new Node(b);
+            Node n = new Node(b, null);
             Tree t = new Tree(n);
             return t;
         }
@@ -29,8 +29,8 @@ namespace _8_Puzzle
         {
             foreach(Board b in bList)
             {
-                Node n = new Node(b);
-                toAdd.children.Add(n);
+                Node n = new Node(b, null);
+                //toAdd.children.Add(n);
             }
         }
 
