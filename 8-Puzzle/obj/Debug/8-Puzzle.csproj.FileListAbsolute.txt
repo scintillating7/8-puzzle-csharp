@@ -3,3 +3,7 @@ C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bi
 C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\8-Puzzle.pdb
 C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.exe
 C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.pdb
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\obj\Debug\8-Puzzle.csprojResolveAssemblyReference.cache
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\C5.dll
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\C5.pdb
+C:\Users\tkrizzle2000\documents\visual studio 2015\Projects\8-Puzzle\8-Puzzle\bin\Debug\C5.xml
