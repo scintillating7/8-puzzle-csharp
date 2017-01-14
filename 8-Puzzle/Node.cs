@@ -11,6 +11,8 @@ namespace _8_Puzzle
         public Board board;
         public int cost;
         public int depth;
+        public C5.IPriorityQueueHandle<Node> handle;
+        public Boolean expanded;
         public Node(Board b,
                     Node parent)
         {
@@ -18,6 +20,7 @@ namespace _8_Puzzle
             this.cost = 0;
             this.depth = 0;
             this.Parent = parent;
+            //this.handle = new Handle<Node> (b.Id);
         }
 
         public Node(Board b,
@@ -29,6 +32,7 @@ namespace _8_Puzzle
             this.cost = cost;
             this.depth = depth;
             this.Parent = parent;
+            //this.handle = new Handle<Node>(b.Id);
         }
 
         public Node Parent { get; private set; }
@@ -46,5 +50,22 @@ namespace _8_Puzzle
                 return 0;
             }
         }
+
+        public override bool Equals(object obj)
+        {
+            if (obj == null || GetType() != obj.GetType())
+            {
+                return false;
+            }
+            Node n = (Node)obj;
+            return (board == n.board);
+        }
+
+        public override int GetHashCode()
+        {
+            return board.Id;
+        }
+
+
     }
 }

@@ -116,6 +116,32 @@ namespace _8_Puzzle
             return false;
         }
 
+        public int getTilesOutOfPlace()
+        {
+            int misPlaced = 0;
+            int k = 0;
+
+            int[] temp = toIntArray(endState);
+            
+            while (k < (n* n))
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (this.Tiles[i, j] != temp[k])
+                        {
+                            misPlaced += 1;
+                        }
+                        k++;
+                    }
+                }
+
+            }
+
+            return misPlaced;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -171,7 +197,7 @@ namespace _8_Puzzle
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder("\n");
 
             for (int i = 0; i < n; i++)
             {
@@ -179,6 +205,7 @@ namespace _8_Puzzle
                     sb.Append(this.mTiles[i, j]);
                     sb.Append(" ");
                 }
+                sb.Append("\n");
                 
             }
 
@@ -255,6 +282,22 @@ namespace _8_Puzzle
             }
 
             return isValidInd;
+        }
+
+        private static int[] toIntArray(int x)
+        {
+            if (x == 0) { return new int[1] { 0 }; }
+
+            List<int> digits = new List<int>();
+            for(; x != 0; x /=10)
+            {
+                digits.Add(x % 10);
+            }
+
+            int[] intArr = digits.ToArray();
+            Array.Reverse(intArr);
+
+            return intArr;
         }
 
         #endregion

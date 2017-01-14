@@ -1,19 +1,30 @@
-﻿namespace _8_Puzzle
-{
-    internal class Heuristic
-    {
-        private int mSum = 0;
+﻿using System;
+using System.Collections.Generic;
 
-        public int Sum
+namespace _8_Puzzle
+{
+    internal class Heuristic : IComparer<Node>
+    {
+       
+        public int Compare(Node x, Node y)
         {
-            get
+            int xMisplacedTiles = getTilesOutOfPlace(x);
+            int yMisplacedTiles = getTilesOutOfPlace(y);
+            if (xMisplacedTiles < yMisplacedTiles)
             {
-                return mSum;
-            }
-            set
+                return -1;
+            } else if (xMisplacedTiles > yMisplacedTiles)
             {
-                mSum = value;
+                return 1;
+            } else
+            {
+                return 0;
             }
+        }
+
+        private int getTilesOutOfPlace(Node n)
+        {
+            return n.board.getTilesOutOfPlace();
         }
     }
 }
