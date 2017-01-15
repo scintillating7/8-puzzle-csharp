@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace _8_Puzzle
 {
@@ -14,7 +15,12 @@ namespace _8_Puzzle
 
         static void Main(string[] args)
         {
-            string defaultArgs = MEDIUM;
+            string defaultArgs = EASY;
+            Console.WriteLine("Enter initial board configuration like so: '134862705'");
+            Console.WriteLine("(Or hit enter for default to EASY args)");
+            string enteredArgs = Console.ReadLine();
+            defaultArgs = enteredArgs.Length == 9 ? enteredArgs : defaultArgs;
+
             Board initialBoard = Board.CreateNew(defaultArgs);
             Node rootNode = new Node(initialBoard, null);
 
@@ -22,19 +28,53 @@ namespace _8_Puzzle
 
             if (initialBoard.isInEndState() == false) {
 
-                //gets different answer than uniform... 132 vs 128
-                //doBreadthFirstSearch(rootNode);
-                //doDepthFirstSearch(rootNode);
+                Console.WriteLine("Choose one of the following options:");
+                Console.WriteLine("BFS: Breadth-First Search");
+                Console.WriteLine("DFS: Depth-First Search");
+                Console.WriteLine("IDS: Iterative Deepening");
+                Console.WriteLine("UCS: Uniform Cost Search");
+                Console.WriteLine("GBF: Greedy Best-First Search with No. Tiles Moved Heuristic");
+                Console.WriteLine("A*1: A* with No. Tiles Moved Heuristic");
+                Console.WriteLine("A*2: A* with Manhattan Distance Heuristic");
+                Console.WriteLine("A*3: A* with Mystery Heuristic");
+                String entry = Console.ReadLine();
 
-                //harder stuff
-                //TODO: fix nodes visited for this thing
+                Stopwatch sw = new Stopwatch();
+                sw.Start();
 
-                //doIterativeDeepening(rootNode);
+                switch (entry)
+                {
+                    case "DFS":
+                        doDepthFirstSearch(rootNode);
+                        break;
+                    case "BFS":
+                        doBreadthFirstSearch(rootNode);
+                        break;
+                    case "IDS":
+                        doIterativeDeepening(rootNode);
+                        break;
+                    case "UCS":
+                        doUniformCost(rootNode);
+                        break;
+                    case "GBF":
+                        doBestFirstSearch(rootNode);
+                        break;
+                    case "A*1":
+                        doAStar1Search(rootNode);
+                        break;
+                    case "A*2":
+                        doAStar2Search(rootNode);
+                        break;
+                    case "A*3":
+                        doAStar3Search(rootNode);
+                        break;
+                    default:
+                        Console.WriteLine("Enter one of the listed options");
+                        break;
+                }
 
-                //doUniformCost(rootNode);
-                doBestFirstSearch(rootNode);
-
-
+                sw.Stop();
+                Console.WriteLine("Elapsed milliseconds: " + sw.ElapsedMilliseconds);
                 Console.WriteLine("Press any key to exit");
                 Console.ReadKey();
             }
@@ -47,14 +87,14 @@ namespace _8_Puzzle
             Queue<Node> q = new Queue<Node>();
             q.Enqueue(rootNode);
 
-            HashSet<int> alreadySeen = new HashSet<int> { };
+            //HashSet<int> previouslyExpanded = new HashSet<int> { };
 
             int iterations = 0;
             while (q.Count > 0)
             {
                 Node currentNode = q.Dequeue();
                 Board currentBoard = currentNode.board;
-                alreadySeen.Add(currentBoard.Id);
+                //previouslyExpanded.Add(currentBoard.Id);
 
                 if (currentBoard.isInEndState())
                 {
@@ -67,7 +107,7 @@ namespace _8_Puzzle
 
                 foreach (Board child in children)
                 {
-                    if (!alreadySeen.Contains(child.Id))
+                    //if (!previouslyExpanded.Contains(child.Id))
                     {
                         Node childNode = new Node(child, 
                                                   currentNode,
@@ -75,7 +115,6 @@ namespace _8_Puzzle
                                                   currentNode.depth + 1);
 
                         q.Enqueue(childNode);
-                        alreadySeen.Add(child.Id);
                         
                     }
                 }
@@ -90,7 +129,7 @@ namespace _8_Puzzle
             Console.WriteLine("Beginning depth first search");
 
             Stack<Node> s = new Stack<Node>();
-            HashSet<int> alreadySeen = new HashSet<int> { };
+            //HashSet<int> alreadySeen = new HashSet<int> { };
             s.Push(rootNode);
 
             int iterations = 0;
@@ -98,7 +137,7 @@ namespace _8_Puzzle
             {
                 Node currentNode = s.Pop();
                 Board currentBoard = currentNode.board;
-                alreadySeen.Add(currentBoard.Id);
+                //alreadySeen.Add(currentBoard.Id);
 
                 if (currentBoard.isInEndState())
                 {
@@ -110,7 +149,7 @@ namespace _8_Puzzle
 
                 foreach (Board child in children)
                 {
-                    if (!alreadySeen.Contains(child.Id))
+                    //if (!alreadySeen.Contains(child.Id))
                     {
                         Node childNode = new Node(child,
                                                   currentNode,
@@ -146,6 +185,7 @@ namespace _8_Puzzle
         {
 
             Board currentBoard = currentNode.board;
+            nodesVisited.Add(currentBoard.Id);
 
             if (currentBoard.isInEndState())
             {
@@ -170,8 +210,7 @@ namespace _8_Puzzle
                                         currentNode,
                                         currentNode.cost + child.TileMoved,
                                         currentNode.depth + 1);
-
-                nodesVisited.Add(childNode.board.Id);
+           
                 if (doDepthLimitedDFS(childNode, depth - 1, ref nodesVisited) != null)
                 {
                     return childNode;
@@ -198,11 +237,6 @@ namespace _8_Puzzle
             while (q.Count > 0)
             {
                 Node currentNode = q.DeleteMin();
-                if (currentNode.expanded == true)
-                {
-                    throw new Exception("Ruh roh");
-                }
-                currentNode.expanded = true;
                 Board currentBoard = currentNode.board;
 
                 //keeps track of expanded states
@@ -265,24 +299,21 @@ namespace _8_Puzzle
 
         static void doBestFirstSearch(Node rootNode)
         {
-            IComparer<Node> sillyHeuristic = new Heuristic();
+            Console.WriteLine("Beginning best first search...");
 
-            C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(sillyHeuristic);
+            IComparer<Node> tilesOutOfPlaceHeuristic = new OutOfPlaceHeuristic();
+
+            C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(tilesOutOfPlaceHeuristic);
             q.Add(rootNode);
 
             //repeated state checking tools
             HashSet<int> previouslyExpanded = new HashSet<int> { };
-            Dictionary<int, Node> idsToNode = new Dictionary<int, Node> { };
+            Dictionary<int, Node> idsInQueueToNode = new Dictionary<int, Node> { };
 
             int iterations = 1;
             while (q.Count > 0)
             {
                 Node currentNode = q.DeleteMin();
-                if (currentNode.expanded == true)
-                {
-                    throw new Exception("Ruh roh");
-                }
-                currentNode.expanded = true;
                 Board currentBoard = currentNode.board;
 
                 //keeps track of expanded states
@@ -302,11 +333,98 @@ namespace _8_Puzzle
 
                     if (!previouslyExpanded.Contains(child.Id))
                     {
-                        int childPotentialCost = currentNode.cost + child.TileMoved;
+
+                        int childHeuristicCost = child.getTilesOutOfPlace();
+
+                        int childCost = currentNode.cost + child.TileMoved;
+
                         Node childNode = new Node(child,
                                                   currentNode,
-                                                  childPotentialCost,
-                                                  currentNode.depth + 1);
+                                                  childCost,
+                                                  currentNode.depth + 1,
+                                                  childHeuristicCost);
+
+                        C5.IPriorityQueueHandle<Node> h = null;
+
+                        if (idsInQueueToNode.ContainsKey(child.Id))
+                        {
+                            //already seen this node somewhere. check queue for cheaper, otherwise don't add
+                            Node currentNodeInQueue = idsInQueueToNode[child.Id];
+                            int currentCostInQueue = currentNodeInQueue.heuristicCost;
+                            if (childHeuristicCost < currentCostInQueue)
+                            {
+                                //replace the node with the same configuration with the cheaper one
+                                //update the handle in the queue appropriately for future reference
+                                h = currentNodeInQueue.handle;
+                                q.Replace(currentNodeInQueue.handle, childNode);
+                                childNode.handle = h;
+                            }
+                            else
+                            {
+                                //do not add this child, the one in the queue already is cheaper
+                            }
+                        }
+                        else
+                        {
+                            //never seen this child before, add it         
+                            q.Add(ref h, childNode);
+                            childNode.handle = h;
+                            idsInQueueToNode.Add(child.Id, childNode);
+                        }
+
+
+                    }
+                }
+
+                iterations += 1;
+
+            }
+        }
+
+        static void doAStar1Search(Node rootNode)
+        {
+            IComparer<Node> aOneHeuristic = new AStarOneHeuristic();
+
+            C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(aOneHeuristic);
+            q.Add(rootNode);
+
+            //repeated state checking tools
+            HashSet<int> previouslyExpanded = new HashSet<int> { };
+            Dictionary<int, Node> idsToNode = new Dictionary<int, Node> { };
+
+            int iterations = 1;
+            while (q.Count > 0)
+            {
+                Node currentNode = q.DeleteMin();
+                Board currentBoard = currentNode.board;
+
+                //keeps track of expanded states
+                //we are currently expanding this state.
+                previouslyExpanded.Add(currentBoard.Id);
+
+                if (currentBoard.isInEndState())
+                {
+                    handleEndState(currentNode, iterations);
+                    return;
+                }
+
+                List<Board> children = currentBoard.GenerateNextStates();
+
+                foreach (Board child in children)
+                {
+
+                    if (!previouslyExpanded.Contains(child.Id))
+                    {
+                        //todo??
+                        int childHeuristicCost = currentNode.cost +
+                                                 child.TileMoved + //together these = g(n)
+                                                 child.getTilesOutOfPlace(); //h(n)
+
+                        Node childNode = new Node(child,
+                                                  currentNode,
+                                                  currentNode.cost + child.TileMoved,
+                                                  currentNode.depth + 1,
+                                                  childHeuristicCost);
 
                         C5.IPriorityQueueHandle<Node> h = null;
 
@@ -314,8 +432,8 @@ namespace _8_Puzzle
                         {
                             //already seen this node somewhere. check queue for cheaper, otherwise don't add
                             Node currentNodeInQueue = idsToNode[child.Id];
-                            int currentCostInQueue = currentNodeInQueue.cost;
-                            if (childPotentialCost < currentCostInQueue)
+                            int currentCostInQueue = currentNodeInQueue.heuristicCost;
+                            if (childHeuristicCost < currentCostInQueue)
                             {
                                 //replace the node with the same configuration with the cheaper one
                                 //update the handle in the queue appropriately for future reference
@@ -345,9 +463,176 @@ namespace _8_Puzzle
             }
         }
 
+        static void doAStar2Search(Node rootNode)
+        {
+            IComparer<Node> aStarTwoHeuristic = new AStarTwoHeuristic();
+
+            C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(aStarTwoHeuristic);
+            q.Add(rootNode);
+
+            //repeated state checking tools
+            HashSet<int> previouslyExpanded = new HashSet<int> { };
+            Dictionary<int, Node> idsInQueueToNode = new Dictionary<int, Node> { };
+
+            int iterations = 1;
+            while (q.Count > 0)
+            {
+                Node currentNode = q.DeleteMin();
+                Board currentBoard = currentNode.board;
+
+                //keeps track of expanded states
+                //we are currently expanding this state.
+                previouslyExpanded.Add(currentBoard.Id);
+
+                if (currentBoard.isInEndState())
+                {
+                    handleEndState(currentNode, iterations);
+                    return;
+                }
+
+                List<Board> children = currentBoard.GenerateNextStates();
+
+                foreach (Board child in children)
+                {
+
+                    if (!previouslyExpanded.Contains(child.Id))
+                    {
+
+                        int childHeuristicCost = currentNode.cost +
+                                                 child.TileMoved + //together these = g(n)
+                                                 child.getManhattanDistance(); //h(n)
+
+                        Node childNode = new Node(child,
+                                                  currentNode,
+                                                  currentNode.cost + child.TileMoved,
+                                                  currentNode.depth + 1,
+                                                  childHeuristicCost);
+
+                        C5.IPriorityQueueHandle<Node> h = null;
+
+                        if (idsInQueueToNode.ContainsKey(child.Id))
+                        {
+                            //already seen this node somewhere. check queue for cheaper, otherwise don't add
+                            Node currentNodeInQueue = idsInQueueToNode[child.Id];
+                            int currentCostInQueue = currentNodeInQueue.heuristicCost;
+                            if (childHeuristicCost < currentCostInQueue)
+                            {
+                                //replace the node with the same configuration with the cheaper one
+                                //update the handle in the queue appropriately for future reference
+                                h = currentNodeInQueue.handle;
+                                q.Replace(currentNodeInQueue.handle, childNode);
+                                childNode.handle = h;
+                            }
+                            else
+                            {
+                                //do not add this child, the one in the queue already is cheaper
+                            }
+                        }
+                        else
+                        {
+                            //never seen this child before, add it         
+                            q.Add(ref h, childNode);
+                            childNode.handle = h;
+                            idsInQueueToNode.Add(child.Id, childNode);
+                        }
+
+
+                    }
+                }
+
+                iterations += 1;
+
+            }
+        }
+
+        static void doAStar3Search(Node rootNode)
+        {
+            IComparer<Node> aStarThreeHeuristic = new AStarThreeHeuristic();
+
+            C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(aStarThreeHeuristic);
+            q.Add(rootNode);
+
+            //repeated state checking tools
+            HashSet<int> previouslyExpanded = new HashSet<int> { };
+            Dictionary<int, Node> idsInQueueToNode = new Dictionary<int, Node> { };
+
+            int iterations = 1;
+            while (q.Count > 0)
+            {
+                Node currentNode = q.DeleteMin();
+                Board currentBoard = currentNode.board;
+
+                //keeps track of expanded states
+                //we are currently expanding this state.
+                previouslyExpanded.Add(currentBoard.Id);
+
+                if (currentBoard.isInEndState())
+                {
+                    handleEndState(currentNode, iterations);
+                    return;
+                }
+
+                List<Board> children = currentBoard.GenerateNextStates();
+
+                foreach (Board child in children)
+                {
+
+                    if (!previouslyExpanded.Contains(child.Id))
+                    {
+
+                        int childHeuristicCost = currentNode.cost +
+                                                 child.TileMoved + //together these = g(n)
+                                                 child.getBiggestHeuristic(); //h(n)
+
+                        Node childNode = new Node(child,
+                                                  currentNode,
+                                                  currentNode.cost + child.TileMoved,
+                                                  currentNode.depth + 1,
+                                                  childHeuristicCost);
+
+                        C5.IPriorityQueueHandle<Node> h = null;
+
+                        if (idsInQueueToNode.ContainsKey(child.Id))
+                        {
+                            //already seen this node somewhere. check queue for cheaper, otherwise don't add
+                            Node currentNodeInQueue = idsInQueueToNode[child.Id];
+                            int currentCostInQueue = currentNodeInQueue.heuristicCost;
+                            if (childHeuristicCost < currentCostInQueue)
+                            {
+                                //replace the node with the same configuration with the cheaper one
+                                //update the handle in the queue appropriately for future reference
+                                h = currentNodeInQueue.handle;
+                                q.Replace(currentNodeInQueue.handle, childNode);
+                                childNode.handle = h;
+                            }
+                            else
+                            {
+                                //do not add this child, the one in the queue already is cheaper
+                            }
+                        }
+                        else
+                        {
+                            //never seen this child before, add it         
+                            q.Add(ref h, childNode);
+                            childNode.handle = h;
+                            idsInQueueToNode.Add(child.Id, childNode);
+                        }
+
+
+                    }
+                }
+
+                iterations += 1;
+
+            }
+        }
+
         static void handleEndState(Node endBoardNode,
                                    int iterations)
         {
+            int depthOfEndNode = endBoardNode.depth;
+
+            //push parent onto stack and then pop to get correct order
             Stack<Node> parentStack = new Stack<Node>();
             parentStack.Push(endBoardNode);
             
@@ -362,7 +647,9 @@ namespace _8_Puzzle
                 Node currentNodeInPath = parentStack.Pop();
                 writeBoardInfo(currentNodeInPath);                
             }
+
             Console.WriteLine("Total nodes considered: " + iterations);
+            Console.WriteLine("Depth: " + depthOfEndNode);
         }
 
         static void writeBoardInfo(Node currentNode)

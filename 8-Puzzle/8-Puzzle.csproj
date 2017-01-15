@@ -51,10 +51,8 @@
     <Compile Include="C5\Handle.cs" />
     <Compile Include="Heuristic.cs" />
     <Compile Include="Node.cs" />
-    <Compile Include="NodeQueue.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tree.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

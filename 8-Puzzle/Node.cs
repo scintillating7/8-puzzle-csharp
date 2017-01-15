@@ -11,6 +11,7 @@ namespace _8_Puzzle
         public Board board;
         public int cost;
         public int depth;
+        public int heuristicCost;
         public C5.IPriorityQueueHandle<Node> handle;
         public Boolean expanded;
         public Node(Board b,
@@ -20,7 +21,6 @@ namespace _8_Puzzle
             this.cost = 0;
             this.depth = 0;
             this.Parent = parent;
-            //this.handle = new Handle<Node> (b.Id);
         }
 
         public Node(Board b,
@@ -32,7 +32,20 @@ namespace _8_Puzzle
             this.cost = cost;
             this.depth = depth;
             this.Parent = parent;
-            //this.handle = new Handle<Node>(b.Id);
+
+        }
+
+        public Node(Board b,
+                    Node parent,
+                    int cost,
+                    int depth,
+                    int heuristicCost)
+        {
+            this.board = b;
+            this.cost = cost;
+            this.heuristicCost = heuristicCost;
+            this.depth = depth;
+            this.Parent = parent;
         }
 
         public Node Parent { get; private set; }

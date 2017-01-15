@@ -17,7 +17,6 @@ namespace _8_Puzzle
         //for a particular board
         private int[,] mTiles;
         private int mId;
-        private Heuristic h;
         private int mTileMoved;
         private int mDirection;
 
@@ -142,6 +141,81 @@ namespace _8_Puzzle
             return misPlaced;
         }
 
+        public int getValueOfTilesOutOfPlace()
+        {
+            int misPlaced = 0;
+            int k = 0;
+
+            int[] temp = toIntArray(endState);
+
+            while (k < (n * n))
+            {
+                for (int i = 0; i < n; i++)
+                {
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (this.Tiles[i, j] != temp[k])
+                        {
+                            misPlaced += this.Tiles[i, j];
+                        }
+                        k++;
+                    }
+                }
+
+            }
+
+            return misPlaced;
+        }
+
+        public int getBiggestHeuristic()
+        {
+            return getMultiplicativeHeuristic();
+        }
+
+        public int getManhattanDistance()
+        {
+            int manhattanDistance = 0;
+
+            Board endBoard = Board.CreateNew("123804765");      
+            int[,] endTiles = endBoard.Tiles;
+
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    int currentNumber = this.Tiles[i, j];
+                    Tuple<int, int> indexInEnd = endBoard.findIndexOfTile(currentNumber);
+                    manhattanDistance += Math.Abs(i - indexInEnd.Item1) + 
+                                         Math.Abs(j - indexInEnd.Item2);
+                }
+            }
+
+            return manhattanDistance;
+        }
+
+        public int getMultiplicativeHeuristic()
+        {
+            int updatedTotalManhattanDistance = 0;
+
+            Board endBoard = Board.CreateNew("123804765");
+            int[,] endTiles = endBoard.Tiles;
+
+            for (int i = 0; i < n; i++)
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    int currentNumber = this.Tiles[i, j];
+                    Tuple<int, int> indexInEnd = endBoard.findIndexOfTile(currentNumber);
+                    int toAdd = currentNumber *
+                                (Math.Abs(i - indexInEnd.Item1) + Math.Abs(j - indexInEnd.Item2));
+
+                    updatedTotalManhattanDistance += toAdd;
+                }
+            }
+
+            return updatedTotalManhattanDistance;
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -152,7 +226,7 @@ namespace _8_Puzzle
             List<Board> childStates = new List<Board>();
 
             //find index of 0/blank tile
-            Tuple<int,int> indexOfBlankTile = findBlankTile();
+            Tuple<int,int> indexOfBlankTile = findIndexOfTile(0);
 
             int row = indexOfBlankTile.Item1;
             int column = indexOfBlankTile.Item2;
@@ -254,7 +328,7 @@ namespace _8_Puzzle
             return b;
         }
 
-        private Tuple<int,int> findBlankTile()
+        private Tuple<int,int> findIndexOfTile(int tileToFind)
         {
             Tuple<int, int> returnIndex = Tuple.Create(-1, -1);
 
@@ -262,7 +336,7 @@ namespace _8_Puzzle
             {
                 for (int j = 0; j < n; j++)
                 {
-                    if (this.Tiles[i, j] == 0)
+                    if (this.Tiles[i, j] == tileToFind)
                     {
                         returnIndex = Tuple.Create(i, j);
                     }
