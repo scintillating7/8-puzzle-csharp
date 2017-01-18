@@ -8,6 +8,7 @@ namespace _8_Puzzle
         int getHeuristicScore(Node parent, Board child);
     }
 
+    #region Implementations
     //IMPLEMENTATIONS
 
     //g(n)
@@ -221,7 +222,7 @@ namespace _8_Puzzle
                 int x1 = x.board.getMultiplicativeHeuristic();
                 int y1 = y.board.getMultiplicativeHeuristic();
 
-                int costX = x.cost; //tileMoved??
+                int costX = x.cost; 
                 int costY = y.cost;
 
                 int totX = x1 + costX;
@@ -247,6 +248,6 @@ namespace _8_Puzzle
             }
         }
     }
-
+    #endregion
 }
 

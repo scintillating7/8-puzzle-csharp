@@ -17,6 +17,8 @@ namespace _8_Puzzle
 
         #endregion
 
+        #region Main
+
         static void Main(string[] args)
         {
             //user-input args for creating initial board
@@ -67,6 +69,10 @@ namespace _8_Puzzle
                 Console.ReadKey();
             }
         }
+
+        #endregion
+
+        #region Search Algorithms
 
         static void doBreadthFirstSearch(Node rootNode)
         {
@@ -390,12 +396,16 @@ namespace _8_Puzzle
             doPriorityQueueSkeletonCode(rootNode, aStarThreeHeuristic, aStarThreeComparer, timer);
         }
 
+        #endregion
+
         #region Writing to Console Functions
 
         static void handleEndState(Node endBoardNode,
                                    int iterations,
                                    long milliseconds)
         {
+            System.IO.StreamWriter sw = new System.IO.StreamWriter(@"C:\Development\BFS.txt");
+
             int depthOfEndNode = endBoardNode.depth;
             int totalCost = endBoardNode.cost;
 
@@ -412,17 +422,19 @@ namespace _8_Puzzle
             while (parentStack.Count > 0)
             {
                 Node currentNodeInPath = parentStack.Pop();
-                writeBoardInfo(currentNodeInPath);                
+                writeBoardInfo(currentNodeInPath, sw);                
             }
 
-            Console.WriteLine("Length: " + depthOfEndNode);
-            Console.WriteLine("Total cost: " + totalCost);
-            Console.WriteLine("Elapsed milliseconds: " + milliseconds);
-            Console.WriteLine("Total nodes considered: " + iterations);
+            sw.WriteLine("Length: " + depthOfEndNode);
+            sw.WriteLine("Total cost: " + totalCost);
+            sw.WriteLine("Elapsed milliseconds: " + milliseconds);
+            sw.WriteLine("Total nodes considered: " + iterations);
+            sw.Close();
             
         }
 
-        static void writeBoardInfo(Node currentNode)
+        static void writeBoardInfo(Node currentNode,
+                                   System.IO.StreamWriter sw = null)
         {
             StringBuilder sb = new StringBuilder();
             Board currentBoard = currentNode.board;
@@ -451,9 +463,9 @@ namespace _8_Puzzle
                 sb.Append("cost = " + currentBoard.TileMoved);
                 sb.Append(" total cost = " + currentNode.cost);
 
-                Console.WriteLine(sb.ToString());
+                sw.WriteLine(sb.ToString());
             }
-            Console.WriteLine(currentBoard.ToString());
+            sw.WriteLine(currentBoard.ToString());
         }
 
         static String getArgs()
@@ -494,8 +506,8 @@ namespace _8_Puzzle
             Console.WriteLine("DFS: Depth-First Search");
             Console.WriteLine("IDS: Iterative Deepening");
             Console.WriteLine("UCS: Uniform Cost Search");
-            Console.WriteLine("GBF: Greedy Best-First Search with No. Tiles Moved Heuristic");
-            Console.WriteLine("A*1: A* with No. Tiles Moved Heuristic");
+            Console.WriteLine("GBF: Greedy Best-First Search with No. Tiles Out of Place Heuristic");
+            Console.WriteLine("A*1: A* with No. Tiles Out of Place Heuristic");
             Console.WriteLine("A*2: A* with Manhattan Distance Heuristic");
             Console.WriteLine("A*3: A* with Mystery Heuristic");
             String entry = Console.ReadLine();

@@ -141,37 +141,6 @@ namespace _8_Puzzle
             return misPlaced;
         }
 
-        public int getValueOfTilesOutOfPlace()
-        {
-            int misPlaced = 0;
-            int k = 0;
-
-            int[] temp = toIntArray(endState);
-
-            while (k < (n * n))
-            {
-                for (int i = 0; i < n; i++)
-                {
-                    for (int j = 0; j < n; j++)
-                    {
-                        if (this.Tiles[i, j] != temp[k])
-                        {
-                            misPlaced += this.Tiles[i, j];
-                        }
-                        k++;
-                    }
-                }
-
-            }
-
-            return misPlaced;
-        }
-
-        public int getBiggestHeuristic()
-        {
-            return getMultiplicativeHeuristic();
-        }
-
         public int getManhattanDistance()
         {
             int manhattanDistance = 0;
