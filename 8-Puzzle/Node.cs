@@ -8,12 +8,20 @@ namespace _8_Puzzle
 {
     public class Node : IComparable<Node>
     {
+        #region Properties
+
         public Board board;
         public int cost;
         public int depth;
         public int heuristicCost;
         public C5.IPriorityQueueHandle<Node> handle;
         public Boolean expanded;
+        public Node Parent { get; private set; }
+
+        #endregion
+
+        #region Constructors
+
         public Node(Board b,
                     Node parent)
         {
@@ -48,7 +56,9 @@ namespace _8_Puzzle
             this.Parent = parent;
         }
 
-        public Node Parent { get; private set; }
+        #endregion
+
+        #region Object Functions
 
         public int CompareTo(Node other)
         {
@@ -79,6 +89,6 @@ namespace _8_Puzzle
             return board.Id;
         }
 
-
+        #endregion
     }
 }

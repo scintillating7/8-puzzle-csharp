@@ -9,35 +9,28 @@ namespace _8_Puzzle
 {
     class Program
     {
+        #region Global Variables
+
         private static readonly string EASY = "134862705";
         private static readonly string MEDIUM = "281043765";
         private static readonly string HARD = "567408321";
 
+        #endregion
+
         static void Main(string[] args)
         {
-            string defaultArgs = EASY;
-            Console.WriteLine("Enter initial board configuration like so: '134862705'");
-            Console.WriteLine("(Or hit enter for default to EASY args)");
-            string enteredArgs = Console.ReadLine();
-            defaultArgs = enteredArgs.Length == 9 ? enteredArgs : defaultArgs;
-
+            //user-input args for creating initial board
+            string defaultArgs = getArgs();           
+           
+            //create initial board
             Board initialBoard = Board.CreateNew(defaultArgs);
             Node rootNode = new Node(initialBoard, null);
-
             Console.WriteLine("Initial State: " + initialBoard.ToString());
 
+            //if initial board not in end state, do user-input search
             if (initialBoard.isInEndState() == false) {
 
-                Console.WriteLine("Choose one of the following options:");
-                Console.WriteLine("BFS: Breadth-First Search");
-                Console.WriteLine("DFS: Depth-First Search");
-                Console.WriteLine("IDS: Iterative Deepening");
-                Console.WriteLine("UCS: Uniform Cost Search");
-                Console.WriteLine("GBF: Greedy Best-First Search with No. Tiles Moved Heuristic");
-                Console.WriteLine("A*1: A* with No. Tiles Moved Heuristic");
-                Console.WriteLine("A*2: A* with Manhattan Distance Heuristic");
-                Console.WriteLine("A*3: A* with Mystery Heuristic");
-                String entry = Console.ReadLine();
+                String entry = getSearchRequested();
 
                 Stopwatch sw = new Stopwatch();
                 sw.Start();
@@ -56,17 +49,32 @@ namespace _8_Puzzle
                     case "UCS":
                         doUniformCost(rootNode);
                         break;
+                    case "UCS2":
+                        doUniformCostShort(rootNode);
+                        break;
                     case "GBF":
                         doBestFirstSearch(rootNode);
+                        break;
+                    case "GBF2":
+                        doBFSShort(rootNode);
                         break;
                     case "A*1":
                         doAStar1Search(rootNode);
                         break;
+                    case "A*12":
+                        doAStarOneShort(rootNode);
+                        break;
                     case "A*2":
                         doAStar2Search(rootNode);
                         break;
+                    case "A*22":
+                        doAStarTwoShort(rootNode);
+                        break;
                     case "A*3":
                         doAStar3Search(rootNode);
+                        break;
+                    case "A*32":
+                        doAStar3Short(rootNode);
                         break;
                     default:
                         Console.WriteLine("Enter one of the listed options");
@@ -87,14 +95,14 @@ namespace _8_Puzzle
             Queue<Node> q = new Queue<Node>();
             q.Enqueue(rootNode);
 
-            //HashSet<int> previouslyExpanded = new HashSet<int> { };
+            HashSet<int> previouslyExpanded = new HashSet<int> { };
 
             int iterations = 0;
             while (q.Count > 0)
             {
                 Node currentNode = q.Dequeue();
                 Board currentBoard = currentNode.board;
-                //previouslyExpanded.Add(currentBoard.Id);
+                previouslyExpanded.Add(currentBoard.Id);
 
                 if (currentBoard.isInEndState())
                 {
@@ -107,7 +115,7 @@ namespace _8_Puzzle
 
                 foreach (Board child in children)
                 {
-                    //if (!previouslyExpanded.Contains(child.Id))
+                    if (!previouslyExpanded.Contains(child.Id))
                     {
                         Node childNode = new Node(child, 
                                                   currentNode,
@@ -116,7 +124,7 @@ namespace _8_Puzzle
 
                         q.Enqueue(childNode);
                         
-                    }
+                    } 
                 }
                     
                 iterations += 1;    
@@ -129,7 +137,7 @@ namespace _8_Puzzle
             Console.WriteLine("Beginning depth first search");
 
             Stack<Node> s = new Stack<Node>();
-            //HashSet<int> alreadySeen = new HashSet<int> { };
+            HashSet<int> alreadySeen = new HashSet<int> { };
             s.Push(rootNode);
 
             int iterations = 0;
@@ -137,7 +145,7 @@ namespace _8_Puzzle
             {
                 Node currentNode = s.Pop();
                 Board currentBoard = currentNode.board;
-                //alreadySeen.Add(currentBoard.Id);
+                alreadySeen.Add(currentBoard.Id);
 
                 if (currentBoard.isInEndState())
                 {
@@ -149,7 +157,7 @@ namespace _8_Puzzle
 
                 foreach (Board child in children)
                 {
-                    //if (!alreadySeen.Contains(child.Id))
+                    if (!alreadySeen.Contains(child.Id))
                     {
                         Node childNode = new Node(child,
                                                   currentNode,
@@ -163,9 +171,14 @@ namespace _8_Puzzle
             }         
         }
 
+        /// <summary>
+        /// recursively do DFS to a depth of 1, 2, 3, etc.
+        /// </summary>
+        /// <param name="rootNode"></param>
         static void doIterativeDeepening(Node rootNode)
         {
-            Console.WriteLine("Beginning iterative deepening");
+            Console.WriteLine("Beginning iterative deepening...");
+
             HashSet<int> nodesVisited = new HashSet<int>();
 
             for (int depth = 0; depth < Int32.MaxValue; depth++)
@@ -220,6 +233,98 @@ namespace _8_Puzzle
             }
 
             return null;
+        }
+
+        static void doPriorityQueueSkeletonCode(Node rootNode,
+                                                Heuristic selectedHeuristic,
+                                                IComparer<Node> selectedComparer)
+        {
+
+            C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(selectedComparer);
+            q.Add(rootNode);
+
+            //repeated state checking tools
+            HashSet<int> previouslyExpanded = new HashSet<int> { };
+            Dictionary<int, Node> idsToNode = new Dictionary<int, Node> { };
+
+            int iterations = 1;
+            while (q.Count > 0)
+            {
+                Node currentNode = q.DeleteMin();
+                Board currentBoard = currentNode.board;
+
+                //keeps track of expanded states
+                //we are currently expanding this state.
+                previouslyExpanded.Add(currentBoard.Id);
+
+                if (currentBoard.isInEndState())
+                {
+                    handleEndState(currentNode, iterations);
+                    return;
+                }
+
+                List<Board> children = currentBoard.GenerateNextStates();
+
+                foreach (Board child in children)
+                {
+
+                    if (!previouslyExpanded.Contains(child.Id))
+                    {
+
+                        int childPotentialCost = selectedHeuristic.getHeuristicScore(currentNode,
+                                                                                     child);
+                        Node childNode = new Node(child,
+                                                  currentNode,
+                                                  currentNode.cost + child.TileMoved,
+                                                  currentNode.depth + 1,
+                                                  childPotentialCost);
+
+                        C5.IPriorityQueueHandle<Node> h = null;
+
+                        if (idsToNode.ContainsKey(child.Id))
+                        {
+                            //already seen this node somewhere. check queue for cheaper, otherwise don't add
+                            Node currentNodeInQueue = idsToNode[child.Id];
+                            int currentCostInQueue = currentNodeInQueue.heuristicCost;
+                            if (childPotentialCost < currentCostInQueue)
+                            {
+                                //replace the node with the same configuration with the cheaper one
+                                //update the handle in the queue appropriately for future reference
+                                h = currentNodeInQueue.handle;
+                                q.Replace(currentNodeInQueue.handle, childNode);
+                                childNode.handle = h;
+                            }
+                            else
+                            {
+                                //do not add this child, the one in the queue already is cheaper
+                            }
+                        }
+                        else
+                        {
+                            //never seen this child before, add it         
+                            q.Add(ref h, childNode);
+                            childNode.handle = h;
+                            idsToNode.Add(child.Id, childNode);
+                        }
+
+
+                    }
+                }
+
+                iterations += 1;
+
+            }
+        
+
+    }
+
+        static void doUniformCostShort(Node rootNode)
+        {
+            Console.WriteLine("Beginning uniform cost search...");
+            Heuristic costHeuristic = new CostHeuristic();
+            IComparer<Node> costComparer = new CostHeuristic.CostComparer();
+
+            doPriorityQueueSkeletonCode(rootNode, costHeuristic, costComparer);
         }
 
         static void doUniformCost(Node rootNode)
@@ -297,11 +402,20 @@ namespace _8_Puzzle
             }
         }
 
+        static void doBFSShort(Node rootNode)
+        {
+            Console.WriteLine("Beginning best-first search...");
+            Heuristic outOfPlaceHeuristic = new OutOfPlaceHeuristic();
+            IComparer<Node> outOfPlaceComparer = new OutOfPlaceHeuristic.OutOfPlaceComparer();
+
+            doPriorityQueueSkeletonCode(rootNode, outOfPlaceHeuristic, outOfPlaceComparer);
+        }
+
         static void doBestFirstSearch(Node rootNode)
         {
             Console.WriteLine("Beginning best first search...");
 
-            IComparer<Node> tilesOutOfPlaceHeuristic = new OutOfPlaceHeuristic();
+            IComparer<Node> tilesOutOfPlaceHeuristic = new OutOfPlaceHeuristic.OutOfPlaceComparer();
 
             C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(tilesOutOfPlaceHeuristic);
             q.Add(rootNode);
@@ -333,9 +447,10 @@ namespace _8_Puzzle
 
                     if (!previouslyExpanded.Contains(child.Id))
                     {
-
+                        //h(n)
                         int childHeuristicCost = child.getTilesOutOfPlace();
 
+                        //g(n)
                         int childCost = currentNode.cost + child.TileMoved;
 
                         Node childNode = new Node(child,
@@ -381,9 +496,18 @@ namespace _8_Puzzle
             }
         }
 
+        static void doAStarOneShort(Node rootNode)
+        {
+            Console.WriteLine("Beginning A*-One search...");
+            Heuristic aStarOneHeuristic = new AStarOneHeuristic();
+            IComparer<Node> aStarOneComparer = new AStarOneHeuristic.AStarOneComparer();
+
+            doPriorityQueueSkeletonCode(rootNode, aStarOneHeuristic, aStarOneComparer);
+        }
+
         static void doAStar1Search(Node rootNode)
         {
-            IComparer<Node> aOneHeuristic = new AStarOneHeuristic();
+            IComparer<Node> aOneHeuristic = new AStarOneHeuristic.AStarOneComparer();
 
             C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(aOneHeuristic);
             q.Add(rootNode);
@@ -415,7 +539,7 @@ namespace _8_Puzzle
 
                     if (!previouslyExpanded.Contains(child.Id))
                     {
-                        //todo??
+                        //f(n) = g(n) + h(n)
                         int childHeuristicCost = currentNode.cost +
                                                  child.TileMoved + //together these = g(n)
                                                  child.getTilesOutOfPlace(); //h(n)
@@ -463,9 +587,18 @@ namespace _8_Puzzle
             }
         }
 
+        static void doAStarTwoShort(Node rootNode)
+        {
+            Console.WriteLine("Beginning A*-Two search...");
+            Heuristic aStarTwoHeuristic = new AStarTwoHeuristic();
+            IComparer<Node> aStarTwoComparer = new AStarTwoHeuristic.AStarTwoComparer();
+
+            doPriorityQueueSkeletonCode(rootNode, aStarTwoHeuristic, aStarTwoComparer);
+        }
+
         static void doAStar2Search(Node rootNode)
         {
-            IComparer<Node> aStarTwoHeuristic = new AStarTwoHeuristic();
+            IComparer<Node> aStarTwoHeuristic = new AStarTwoHeuristic.AStarTwoComparer();
 
             C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(aStarTwoHeuristic);
             q.Add(rootNode);
@@ -497,7 +630,7 @@ namespace _8_Puzzle
 
                     if (!previouslyExpanded.Contains(child.Id))
                     {
-
+                        //f(n) = g(n) + h(n)
                         int childHeuristicCost = currentNode.cost +
                                                  child.TileMoved + //together these = g(n)
                                                  child.getManhattanDistance(); //h(n)
@@ -545,9 +678,18 @@ namespace _8_Puzzle
             }
         }
 
+        static void doAStar3Short(Node rootNode)
+        {
+            Console.WriteLine("Beginning A*-3 search...");
+            Heuristic aStarThreeHeuristic = new AStarThreeHeuristic();
+            IComparer<Node> aStarThreeComparer = new AStarThreeHeuristic.AStarThreeComparer();
+
+            doPriorityQueueSkeletonCode(rootNode, aStarThreeHeuristic, aStarThreeComparer);
+        }
+
         static void doAStar3Search(Node rootNode)
         {
-            IComparer<Node> aStarThreeHeuristic = new AStarThreeHeuristic();
+            IComparer<Node> aStarThreeHeuristic = new AStarThreeHeuristic.AStarThreeComparer();
 
             C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(aStarThreeHeuristic);
             q.Add(rootNode);
@@ -579,10 +721,10 @@ namespace _8_Puzzle
 
                     if (!previouslyExpanded.Contains(child.Id))
                     {
-
+                        //f(n) = g(n) + h(n)
                         int childHeuristicCost = currentNode.cost +
                                                  child.TileMoved + //together these = g(n)
-                                                 child.getBiggestHeuristic(); //h(n)
+                                                 child.getMultiplicativeHeuristic(); //h(n)
 
                         Node childNode = new Node(child,
                                                   currentNode,
@@ -626,6 +768,8 @@ namespace _8_Puzzle
 
             }
         }
+
+        #region Writing to Console Functions
 
         static void handleEndState(Node endBoardNode,
                                    int iterations)
@@ -685,5 +829,53 @@ namespace _8_Puzzle
             }
             Console.WriteLine(currentBoard.ToString());
         }
+
+        static String getArgs()
+        {
+            String defaultArgs = "";
+            Console.WriteLine("Enter EASY, MEDIUM, or HARD for built-in args");
+            Console.WriteLine("Or enter initial board configuration manually like so: '134862705'");
+            string enteredArgs = Console.ReadLine();
+            defaultArgs = enteredArgs;
+
+            switch (defaultArgs)
+            {
+                case "EASY":
+                    defaultArgs = EASY;
+                    break;
+                case "MEDIUM":
+                    defaultArgs = MEDIUM;
+                    break;
+                case "HARD":
+                    defaultArgs = HARD;
+                    break;
+                default:
+                    break;
+            }
+
+            if (defaultArgs.Length == 0)
+            {
+                throw new Exception("Invalid arguments provided");
+            }
+
+            return defaultArgs;
+        }
+
+        static String getSearchRequested()
+        {
+            Console.WriteLine("Choose one of the following options:");
+            Console.WriteLine("BFS: Breadth-First Search");
+            Console.WriteLine("DFS: Depth-First Search");
+            Console.WriteLine("IDS: Iterative Deepening");
+            Console.WriteLine("UCS: Uniform Cost Search");
+            Console.WriteLine("GBF: Greedy Best-First Search with No. Tiles Moved Heuristic");
+            Console.WriteLine("A*1: A* with No. Tiles Moved Heuristic");
+            Console.WriteLine("A*2: A* with Manhattan Distance Heuristic");
+            Console.WriteLine("A*3: A* with Mystery Heuristic");
+            String entry = Console.ReadLine();
+            return entry;
+        }
+
+        #endregion
     }
 }
