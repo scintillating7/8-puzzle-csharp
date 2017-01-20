@@ -65,6 +65,7 @@ namespace _8_Puzzle
                         break;
                 }
 
+
                 Console.WriteLine("Press any key to exit");
                 Console.ReadKey();
             }
@@ -78,30 +79,29 @@ namespace _8_Puzzle
         {
             //standard beginning code
             Console.WriteLine("Beginning breadth first search");
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
 
             //BFS uses first-in, first-out queue
-            Queue<Node> q = new Queue<Node>();
-            q.Enqueue(rootNode);
+            Queue<Node> nodeQueue = new Queue<Node>();
+            nodeQueue.Enqueue(rootNode);
 
             HashSet<int> previouslyExpanded = new HashSet<int> { };
 
-            int iterations = 0;
-            while (q.Count > 0)
+            int nodesPoppedOffQueue = 0;
+            int maxQueueSize = 1; //root node is in there
+
+            while (nodeQueue.Count > 0)
             {
-                Node currentNode = q.Dequeue();
+                Node currentNode = nodeQueue.Dequeue();
+                nodesPoppedOffQueue += 1;
+
                 Board currentBoard = currentNode.board;
                 previouslyExpanded.Add(currentBoard.Id);
 
                 if (currentBoard.isInEndState())
                 {
-                    //capture time elapsed by algorithm, we're done
-                    timer.Stop();
-                    long milliseconds = timer.ElapsedMilliseconds;
                     handleEndState(currentNode,
-                                    iterations,
-                                    milliseconds);
+                                   nodesPoppedOffQueue,
+                                   maxQueueSize);
                     return;
                 }
 
@@ -116,39 +116,44 @@ namespace _8_Puzzle
                                                   currentNode.cost + child.TileMoved,
                                                   currentNode.depth + 1);
 
-                        q.Enqueue(childNode);
+                        nodeQueue.Enqueue(childNode);
                        
                     } 
                 }
-                    
-                iterations += 1;    
                 
+                //update maxQueueSize, done adding all potential children
+                if (maxQueueSize < nodeQueue.Count)
+                {
+                    maxQueueSize = nodeQueue.Count;
+                }              
             }
         }
 
         static void doDepthFirstSearch(Node rootNode)
         {
             Console.WriteLine("Beginning depth first search...");
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
 
             //DFS uses first-in, last-out stack
-            Stack<Node> s = new Stack<Node>();
+            Stack<Node> nodeStack = new Stack<Node>();
             HashSet<int> alreadySeen = new HashSet<int> { };
-            s.Push(rootNode);
+            nodeStack.Push(rootNode);
 
-            int iterations = 0;
-            while (s.Count > 0)
+            int nodesPoppedOffQueue = 0;
+            int maxQueueSize = 1; //root node is in there
+
+            while (nodeStack.Count > 0)
             {
-                Node currentNode = s.Pop();
+                Node currentNode = nodeStack.Pop();
+                nodesPoppedOffQueue += 1;
+
                 Board currentBoard = currentNode.board;
                 alreadySeen.Add(currentBoard.Id);
 
                 if (currentBoard.isInEndState())
                 {
-                    timer.Stop();
-                    long milliseconds = timer.ElapsedMilliseconds;
-                    handleEndState(currentNode, iterations, milliseconds);
+                    handleEndState(currentNode, 
+                                   nodesPoppedOffQueue, 
+                                   maxQueueSize);
                     return;
                 }
 
@@ -162,11 +167,15 @@ namespace _8_Puzzle
                                                   currentNode,
                                                   currentNode.cost + child.TileMoved,
                                                   currentNode.depth + 1);
-                        s.Push(childNode);
+                        nodeStack.Push(childNode);
                     }
                 }
 
-                iterations += 1;
+                //update maxQueueSize, done adding all potential children
+                if (maxQueueSize < nodeStack.Count)
+                {
+                    maxQueueSize = nodeStack.Count;
+                }
             }         
         }
 
@@ -177,17 +186,18 @@ namespace _8_Puzzle
         static void doIterativeDeepening(Node rootNode)
         {
             Console.WriteLine("Beginning iterative deepening...");
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
 
-            int nodesVisited = 0;
+            int nodesVisited = 0;          
 
             for (int depth = 0; depth < Int32.MaxValue; depth++)
             {
+                int maxQueueDepth = 0;
+                HashSet<int> uniqueNodesVisited = new HashSet<int>();
                 Node endNode = doDepthLimitedDFS(rootNode, 
                                                  depth, 
-                                                 timer,
-                                                 ref nodesVisited);
+                                                 ref nodesVisited,
+                                                 ref maxQueueDepth,
+                                                 ref uniqueNodesVisited);
                 if (endNode != null)
                 {
                     //we're done
@@ -198,22 +208,26 @@ namespace _8_Puzzle
 
         static Node doDepthLimitedDFS(Node currentNode, 
                                       int depth,
-                                      Stopwatch timer,
-                                      ref int nodesVisited)
+                                      ref int nodesVisited,
+                                      ref int maxQueueSize,
+                                      ref HashSet<int> uniqueNodesVisited)
         {
             //we visit the same node multiple times, 
             //so count each board each time we visit it
             Board currentBoard = currentNode.board;
             nodesVisited += 1;
+            maxQueueSize += 1;
+            uniqueNodesVisited.Add(currentBoard.Id);
 
             if (currentBoard.isInEndState())
             {
-                timer.Stop();
-                long milliseconds = timer.ElapsedMilliseconds;
                 //found endState
                 //use this opportunity to write path to console,
                 //as it will be rewinded by recursive call.
-                handleEndState(currentNode, nodesVisited, milliseconds);
+                handleEndState(currentNode, 
+                               nodesVisited, 
+                               maxQueueSize);
+
                 return currentNode;
             }
 
@@ -231,16 +245,18 @@ namespace _8_Puzzle
                                         currentNode,
                                         currentNode.cost + child.TileMoved,
                                         currentNode.depth + 1);
-           
-                if (doDepthLimitedDFS(childNode, 
-                                      depth - 1, 
-                                      timer,
-                                      ref nodesVisited) != null)
-                {
-                    return childNode;
-                }
-                
 
+                if (!uniqueNodesVisited.Contains(childNode.board.Id))
+                {
+                    if (doDepthLimitedDFS(childNode,
+                                          depth - 1,
+                                          ref nodesVisited,
+                                          ref maxQueueSize,
+                                          ref uniqueNodesVisited) != null)
+                    {
+                        return childNode;
+                    }
+                }             
             }
 
             return null;
@@ -252,18 +268,22 @@ namespace _8_Puzzle
                                                 Stopwatch timer)
         {
 
-            C5.IntervalHeap<Node> q = new C5.IntervalHeap<Node>(selectedComparer);
-            q.Add(rootNode);
+            C5.IntervalHeap<Node> nodeQueue = new C5.IntervalHeap<Node>(selectedComparer);
+            nodeQueue.Add(rootNode);
 
             //repeated state checking tools
             HashSet<int> previouslyExpanded = new HashSet<int> { };
             Dictionary<int, Node> idsToNode = new Dictionary<int, Node> { };
 
-            int iterations = 1;
-            while (q.Count > 0)
+            int nodesPoppedOffQueue = 0;
+            int maxQueueSize = 1; //rootNode is in there
+
+            while (nodeQueue.Count > 0)
             {
                 //heap extracts minimum based on selected comparer
-                Node currentNode = q.DeleteMin();
+                Node currentNode = nodeQueue.DeleteMin();
+                nodesPoppedOffQueue += 1;
+
                 Board currentBoard = currentNode.board;
 
                 //keeps track of expanded states
@@ -272,12 +292,9 @@ namespace _8_Puzzle
 
                 if (currentBoard.isInEndState())
                 {
-                    //stop timer now, algorithm is done
-                    //(otherwise we time writing to the console, which can be long)
-                    timer.Stop();
-                    long milliseconds = timer.ElapsedMilliseconds;
-
-                    handleEndState(currentNode, iterations, milliseconds);
+                    handleEndState(currentNode, 
+                                   nodesPoppedOffQueue, 
+                                   maxQueueSize);
                     return;
                 }
 
@@ -309,7 +326,7 @@ namespace _8_Puzzle
                                 //replace the node with the same configuration with the cheaper one
                                 //update the handle in the queue appropriately for future reference
                                 h = currentNodeInQueue.handle;
-                                q.Replace(currentNodeInQueue.handle, childNode);
+                                nodeQueue.Replace(currentNodeInQueue.handle, childNode);
                                 childNode.handle = h;
                             }
                             else
@@ -320,20 +337,20 @@ namespace _8_Puzzle
                         else
                         {
                             //never seen this child before, add it         
-                            q.Add(ref h, childNode);
+                            nodeQueue.Add(ref h, childNode);
                             childNode.handle = h;
                             idsToNode.Add(child.Id, childNode);
                         }
-
-
                     }
                 }
 
-                iterations += 1;
-
+                //update maxQueueSize, done adding all potential children
+                if (maxQueueSize < nodeQueue.Count)
+                {
+                    maxQueueSize = nodeQueue.Count;
+                }
             }
         
-
     }
 
         static void doUniformCostShort(Node rootNode)
@@ -401,10 +418,10 @@ namespace _8_Puzzle
         #region Writing to Console Functions
 
         static void handleEndState(Node endBoardNode,
-                                   int iterations,
-                                   long milliseconds)
+                                   int nodesExpanded,
+                                   int maxQueueSize)
         {
-            System.IO.StreamWriter sw = new System.IO.StreamWriter(@"C:\Development\BFS.txt");
+            //System.IO.StreamWriter sw = new System.IO.StreamWriter(@"C:\Development\BFS.txt");
 
             int depthOfEndNode = endBoardNode.depth;
             int totalCost = endBoardNode.cost;
@@ -422,14 +439,14 @@ namespace _8_Puzzle
             while (parentStack.Count > 0)
             {
                 Node currentNodeInPath = parentStack.Pop();
-                writeBoardInfo(currentNodeInPath, sw);                
+                writeBoardInfo(currentNodeInPath, null);                
             }
 
-            sw.WriteLine("Length: " + depthOfEndNode);
-            sw.WriteLine("Total cost: " + totalCost);
-            sw.WriteLine("Elapsed milliseconds: " + milliseconds);
-            sw.WriteLine("Total nodes considered: " + iterations);
-            sw.Close();
+            Console.WriteLine("Length: " + depthOfEndNode);
+            Console.WriteLine("Total cost: " + totalCost);
+            Console.WriteLine("Time: " + nodesExpanded);
+            Console.WriteLine("Max queue size: " + maxQueueSize);
+            //sw.Close();
             
         }
 
@@ -463,9 +480,9 @@ namespace _8_Puzzle
                 sb.Append("cost = " + currentBoard.TileMoved);
                 sb.Append(" total cost = " + currentNode.cost);
 
-                sw.WriteLine(sb.ToString());
+                Console.WriteLine(sb.ToString());
             }
-            sw.WriteLine(currentBoard.ToString());
+            Console.WriteLine(currentBoard.ToString());
         }
 
         static String getArgs()

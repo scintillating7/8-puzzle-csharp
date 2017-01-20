@@ -117,28 +117,14 @@ namespace _8_Puzzle
         {
             public int Compare(Node x, Node y)
             {
-                int hX = x.board.getTilesOutOfPlace();
-                int hY = y.board.getTilesOutOfPlace();
-
-                int gX = x.cost;
-                int gY = y.cost;
-
-                int fX = hX + gX;
-                int fY = hY + gY;
-
-                //sanity check
                 int heuristicX = x.heuristicCost;
                 int heuristicY = y.heuristicCost;
 
-                if ((heuristicX != fX) || (heuristicY != fY)) {
-                    throw new Exception("WTF");
-                }
-
-                if (fX > fY)
+                if (heuristicX > heuristicY)
                 {
                     return 1;
                 }
-                else if (fX < fY)
+                else if (heuristicX < heuristicY)
                 {
                     return -1;
                 }
@@ -172,28 +158,14 @@ namespace _8_Puzzle
         {
             public int Compare(Node x, Node y)
             {
-                int mX = x.board.getManhattanDistance();
-                int mY = y.board.getManhattanDistance();
-
-                int costX = x.cost; //tileMoved??
-                int costY = y.cost;
-
-                int totX = mX + costX;
-                int totY = mY + costY;
-
                 int heuristicX = x.heuristicCost;
                 int heuristicY = y.heuristicCost;
 
-                if ((heuristicX != totX) || (heuristicY != totY))
-                {
-                    throw new Exception("WTF too");
-                }
-
-                if (totX > totY)
+                if (heuristicX > heuristicY)
                 {
                     return 1;
                 }
-                else if (totX < totY)
+                else if (heuristicX < heuristicY)
                 {
                     return -1;
                 }
@@ -219,25 +191,11 @@ namespace _8_Puzzle
             public int Compare(Node x, Node y)
             {
 
-                int x1 = x.board.getMultiplicativeHeuristic();
-                int y1 = y.board.getMultiplicativeHeuristic();
-
-                int costX = x.cost; 
-                int costY = y.cost;
-
-                int totX = x1 + costX;
-                int totY = y1 + costY;
-
-                if ((totX != x.heuristicCost) || (totY != y.heuristicCost))
-                {
-                    throw new Exception("WTF three");
-                }
-
-                if (totX < totY)
+                if (x.heuristicCost < y.heuristicCost)
                 {
                     return -1;
                 }
-                else if (totX > totY)
+                else if (x.heuristicCost > y.heuristicCost)
                 {
                     return 1;
                 }
